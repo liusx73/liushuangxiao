@@ -26,9 +26,9 @@ public class BucketSort {
 			ptr = buckets.get(i).getHead();
 			
 			if(size == 1){
-				array[index++] = ptr.getElement().intValue();
+				array[index++] = ptr.getElement();
 				ptr = null;
-				buckets.get(i).setSize(0);
+				buckets.get(i).setSizeMinusOne();
 				continue;
 			}
 			
@@ -43,7 +43,7 @@ public class BucketSort {
 					array[k+1] = array[k];
 					k --;
 				}
-				array[i+1] = ptr.getElement();
+				array[k+1] = ptr.getElement();
 				temp = ptr;
 				ptr = ptr.getNext();
 				temp = null;
@@ -164,6 +164,9 @@ class Bucket<T>{
 	}
 	
 	public void setSizePlusOne(){
+		this.size ++;
+	}
+	public void setSizeMinusOne(){
 		this.size ++;
 	}
 }
