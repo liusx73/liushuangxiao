@@ -7,6 +7,7 @@ public class Test {
 	public static void main(String[] args) {
 		LocalDate ld = IsoChronology.INSTANCE.dateNow();
 		System.out.println(hideInfo("ab",""));
+		System.out.println(ld);
 	}
 	private static String hideString = "*****";
 	public static String hideInfo(String str,String separator){
