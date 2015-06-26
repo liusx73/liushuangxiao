@@ -1,3 +1,5 @@
 *.class
 test/bin/
 test/.settings/
+.project
+.classpath
