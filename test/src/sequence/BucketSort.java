@@ -13,7 +13,6 @@ public class BucketSort {
 		Bucket<Double> bucket = null;
 		for (int i = 0; i < num; i++) {
 			Entry<Double> ptr;
-			Entry<Double> temp;
 			bucket = buckets.get(i);
 			if(bucket == null){
 				continue;
@@ -34,9 +33,7 @@ public class BucketSort {
 			
 			low = index;
 			array[index ++] = ptr.getElement();
-			temp = ptr;
 			ptr = ptr.getNext();
-			temp = null;
 			while(ptr != null){
 				int k = index -1;
 				while(k >= low && array[k] > ptr.getElement()){
@@ -44,9 +41,7 @@ public class BucketSort {
 					k --;
 				}
 				array[k+1] = ptr.getElement();
-				temp = ptr;
 				ptr = ptr.getNext();
-				temp = null;
 				index ++;
 			}
 			buckets.get(i).setSize(0);
