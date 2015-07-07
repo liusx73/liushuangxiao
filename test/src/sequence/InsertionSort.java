@@ -2,7 +2,7 @@ package sequence;
 
 
 public class InsertionSort {
-	static void sortPointers(Integer[] ar, int n) {
+	public static void sortPointers(Integer[] ar, int n) {
 		for (int j = 0; j < n; j++) {
 			int i = j - 1;
 			Integer value = ar[j];

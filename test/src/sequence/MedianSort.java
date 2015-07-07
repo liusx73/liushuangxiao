@@ -1,6 +1,5 @@
 package sequence;
 
-import java.util.Random;
 
 public class MedianSort {
 
