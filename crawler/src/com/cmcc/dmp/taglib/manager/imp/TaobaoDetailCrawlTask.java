@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -174,6 +175,8 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 		String url = "https://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150719&ie=utf8&cps=yes&cat=50004603&bcoffset=1&s=";
 		Page page = new Page(44, 1, 47);
 		TaobaoDetailCrawlTask t = new TaobaoDetailCrawlTask(url, "utf-8", page);
+		long start = new Date().getTime();
 		t.crawl();
+		System.out.println(new Date().getTime() - start);
 	}
 }

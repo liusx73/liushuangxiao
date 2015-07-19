@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import net.sf.json.JSONArray;
@@ -53,8 +54,13 @@ public class TaobaoCrawlTask extends CrawlTask {
 	}
 
 	void crawl(final String url, final String coding, Category category) {
+		long start = new Date().getTime();
 		String info = getPageConfig(url, coding, category);
+		long urldate = new Date().getTime();
+		System.out.println(urldate - start);
 		analyze(category, info);
+//		long analyze = new Date().getTime();
+//		System.out.println(analyze - urldate);
 		System.out.println(category.getName() + "--" + category.getId() + "--"
 				+ category.getCountItems());
 		
@@ -107,23 +113,27 @@ public class TaobaoCrawlTask extends CrawlTask {
 	private String getPageConfig(String url, String coding, Category category) {
 		Integer categoryId = category.getId();
 		url = categoryId == null ? url : url + categoryId.toString();
+		long start = new Date().getTime();
 		HttpURLConnection urlCon = URLConnector.getHttpConnection(url, coding);
-		JSONObject pageConfig = null;
 		InputStreamReader in = null;
 		BufferedReader br = null;
 		String info = null;
 		try {
 			urlCon.connect();
 			in = new InputStreamReader(urlCon.getInputStream(), "UTF-8");
+			long urldate = new Date().getTime();
+			System.out.println(urldate - start);
 			br = new BufferedReader(in);
 			String readLine = null;
 			while ((readLine = br.readLine()) != null && info == null) {
-				if (readLine.trim().startsWith("g_page_config")) {
-					info = readLine.split("=")[1];
-					info = info.substring(0, info.length() - 1);
-					info = HtmlStringUtils.trimQuotes(info);
+				int index = readLine.indexOf("g_page_config");
+				if (index > -1) {
+					readLine = readLine.trim();
+					info = readLine.substring(readLine.indexOf("=") + 1, readLine.length() -1);
 				}
 			}
+			long analyze = new Date().getTime();
+			System.out.println(analyze - urldate);
 			in.close();
 			in = null;
 			br.close();

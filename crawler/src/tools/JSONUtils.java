@@ -48,7 +48,7 @@ public class JSONUtils {
 				}
 			}
 			
-			if(!sb.equals(StringUtils.EMPTY)){
+			if(!StringUtils.isBlank(sb.toString())){
 				rtn = Integer.parseInt(sb.toString());
 			}
 		}
