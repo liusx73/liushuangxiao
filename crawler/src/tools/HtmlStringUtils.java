@@ -7,6 +7,10 @@ public class HtmlStringUtils {
 	private static String SEMICOLON = ";";
 	private static String GREATER = ">";
 	private static String LESS = "<";
+	public static char DOUBLE_QUOTES_CHAR = '"';
+	public static char SINGLE_QUOTES_CHAR = '\'';
+	public static String DOUBLE_QUOTES_STRING = "\"";
+	public static String SINGLE_QUOTES_STRING = "'";
 	
 	private static String trim(String str,char c) {
 		char[] value = str.toCharArray();
@@ -23,7 +27,7 @@ public class HtmlStringUtils {
         return ((st > 0) || (len < value.length)) ? str.substring(st, len) : str;
     }
 	/**
-	 * È¥µôÇ°ºóÒýºÅ
+	 * È¥ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * @param str
 	 * @return
 	 */
@@ -38,7 +42,7 @@ public class HtmlStringUtils {
         
     }
 	/**
-	 * Àý£º
+	 * ï¿½ï¿½ï¿½ï¿½
 	 * 	str = id="id" name="name" 
 	 * 		  0123456789....
 	 *  index = 8;

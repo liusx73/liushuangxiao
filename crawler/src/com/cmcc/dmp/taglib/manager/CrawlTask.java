@@ -13,7 +13,7 @@ package com.cmcc.dmp.taglib.manager;
  * @注意：本内容仅限于中国移动内部传阅，禁止外泄以及用于其他的商业目的
  */
 
-public abstract class CrawlTask<T> implements Runnable{
+public abstract class CrawlTask implements Runnable{
 
 	protected abstract void crawl();
 
