@@ -43,13 +43,32 @@ public class JSONUtils {
 			StringBuffer sb = new StringBuffer();
 			char[] c = str.toCharArray();
 			for (int i = 0; i < c.length; i++) {
-				if(Character.isDigit(c[i])){
+				if(Character.isDigit(c[i]) || c[i] == '.'){
 					sb.append(c[i]);
 				}
 			}
-			
-			if(!StringUtils.isBlank(sb.toString())){
-				rtn = Integer.parseInt(sb.toString());
+			String temp = sb.toString();
+			if(!StringUtils.isBlank(temp)){
+				rtn = Integer.parseInt(temp);
+			}
+		}
+		return rtn;
+	}
+	
+	public static double getDoubleValue(String json, String name){
+		String str = getValue(json, name ,0 ,":", ",");
+		double rtn = 0;
+		if(!str.equals(StringUtils.EMPTY)){
+			StringBuffer sb = new StringBuffer();
+			char[] c = str.toCharArray();
+			for (int i = 0; i < c.length; i++) {
+				if(Character.isDigit(c[i]) || c[i] == '.'){
+					sb.append(c[i]);
+				}
+			}
+			String temp = sb.toString();
+			if(!StringUtils.isBlank(temp)){
+				rtn = Double.parseDouble(temp);
 			}
 		}
 		return rtn;

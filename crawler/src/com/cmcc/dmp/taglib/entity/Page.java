@@ -6,16 +6,10 @@ public class Page {
 	private Integer currentPage;
 	private Integer totalCount;
 
-	public Page(Integer pageSize, Integer currentPage, Integer totalPage) {
+	public Page(Integer pageSize, Integer totalPage) {
 		super();
 		this.pageSize = pageSize;
 		this.totalPage = totalPage;
-	}
-
-	public Page(Integer pageSize, Integer currentPage) {
-		super();
-		this.pageSize = pageSize;
-		this.currentPage = currentPage;
 	}
 
 	public Page(Integer pageSize, Integer totalPage, Integer totalCount,

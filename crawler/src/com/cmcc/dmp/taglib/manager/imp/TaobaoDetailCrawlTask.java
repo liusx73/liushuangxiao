@@ -27,16 +27,34 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 	private String coding;
 	private Page page;
 	private int pageSize;
+	public static int totalItem = 0;
+	public static int alreadyItem = 0;
 	
+	public synchronized void plusTotalItem(){
+		totalItem ++;
+	}
+	public synchronized void plusAlreadyItem(){
+		totalItem ++;
+	}
 	
 	public TaobaoDetailCrawlTask(String url, String coding,
 			Page page) {
 		super();
-		this.url = url;
+		this.url = url ;
 		this.coding = coding;
 		this.page = page;
 		this.pageSize = page.getPageSize();
 	}
+	
+	public TaobaoDetailCrawlTask(String url,
+			Page page) {
+		super();
+		this.url = url ;
+		this.coding = TaobaoCrawlTask.UTF_8;
+		this.page = page;
+		this.pageSize = page.getPageSize();
+	}
+
 
 	@Override
 	protected void crawl() {
@@ -45,14 +63,18 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 		Iterator<String> i = null;
 		int indexPage = 0;
 		while (indexPage < page.getTotalPage()) {
-			info = getPageConfig(url + indexPage * pageSize, coding);
-			items = getItems(info);
-			i = items.iterator();
-			while (i.hasNext()) {
-				crawlDetail(i.next());
+			info = getPageConfig(url +"&s=" + indexPage * pageSize, coding);
+			if(!StringUtils.isBlank(info)){
+				items = getItems(info);
+				i = items.iterator();
+				while (i.hasNext()) {
+					crawlDetail(i.next());
+				}
+				indexPage ++ ;
 			}
-			indexPage ++ ;
 		}
+		TaobaoCrawlTask.threads.remove(Thread.currentThread());
+		TaobaoCrawlTask.startThread(TaobaoCrawlTask.waitThreads,TaobaoCrawlTask.threads);
 	}
 	
 	
@@ -60,7 +82,6 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 		try {
 			url = "http:" + url.toString();
 			url = Transcoding.decodeUnicode(url);
-			System.out.print(url);
 			Document doc = Jsoup.connect(url).get();
 			if(doc.title().indexOf("出错啦！") >= 0){
 				System.out.print("----出错啦!");
@@ -94,13 +115,17 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 				Elements attributes = doc.select("ul[class=attributes-list]");
 				attribute = attributes.get(0).text();
 			}
-			System.out.print("----go");
+			
+			plusAlreadyItem();
 		} catch (IOException e) {
-			System.out.print("----error----" + e.getMessage());
+			TaobaoCrawlTask.errorUrl.add(url);
+			System.out.println(url + "----error----" + e.getMessage());
 //			e.printStackTrace();
-		}finally{
-			System.out.println();
+		} catch (Exception e) {
+			TaobaoCrawlTask.errorUrl.add(url);
+			System.out.println(url + "----error----" + e.getMessage());
 		}
+		plusTotalItem();
 	}
 	
 	private List<String> getItems(final String info){
@@ -127,6 +152,7 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 	
 	private String getPageConfig(String url, String coding) {
 		HttpURLConnection urlCon = URLConnector.getHttpConnection(url, coding);
+//		urlCon.setReadTimeout(30000);
 		InputStreamReader in = null;
 		BufferedReader br = null;
 		String info = null;
@@ -136,10 +162,11 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 			br = new BufferedReader(in);
 			String readLine = null;
 			while ((readLine = br.readLine()) != null && info == null) {
-				if (readLine.trim().startsWith("g_page_config")) {
-					info = readLine.split("=")[1];
-					info = info.substring(0, info.length() - 1);
-					info = HtmlStringUtils.trimQuotes(info);
+				int index = readLine.indexOf("g_page_config");
+				if (index > -1) {
+					readLine = readLine.trim();
+					info = readLine.substring(readLine.indexOf("=") + 1,
+							readLine.length() - 1);
 				}
 			}
 			in.close();
@@ -149,6 +176,7 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 			urlCon.disconnect();
 			urlCon = null;
 		} catch (IOException e) {
+			info = null;
 			e.printStackTrace();
 		} finally {
 			try {
@@ -173,7 +201,7 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 	
 	public static void main(String[] args) {
 		String url = "https://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150719&ie=utf8&cps=yes&cat=50004603&bcoffset=1&s=";
-		Page page = new Page(44, 1, 47);
+		Page page = new Page(44, 47);
 		TaobaoDetailCrawlTask t = new TaobaoDetailCrawlTask(url, "utf-8", page);
 		long start = new Date().getTime();
 		t.crawl();

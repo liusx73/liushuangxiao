@@ -3,6 +3,5 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/json"/>
-	<classpathentry kind="lib" path="E:/programming/lib/jsoup-1.8.2.jar" sourcepath="E:/programming/lib/jsoup-1.8.2-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -2,12 +2,13 @@ package testDate;
 
 import java.time.LocalDate;
 import java.time.chrono.IsoChronology;
+import java.util.Date;
 
 public class Test {
 	public static void main(String[] args) {
-		LocalDate ld = IsoChronology.INSTANCE.dateNow();
-		System.out.println(hideInfo("ab",""));
-		System.out.println(ld);
+//		LocalDate ld = IsoChronology.INSTANCE.dateNow();
+//		System.out.println(hideInfo("ab",""));
+		System.out.println(new Date().getTime());
 	}
 	private static String hideString = "*****";
 	public static String hideInfo(String str,String separator){
