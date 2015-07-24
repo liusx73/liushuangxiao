@@ -28,14 +28,6 @@ public class JSONUtils {
 		}
 	}
 	
-	private static String getValue(String json, String name){
-		String str = getValue(json, name,0,":", ",");
-		if(!str.equals(StringUtils.EMPTY)){
-			HtmlStringUtils.trimQuotes(str);
-		}
-		return str;
-	}
-	
 	public static int getIntValue(String json, String name){
 		String str = getValue(json, name ,0 ,":", ",");
 		int rtn = 0;

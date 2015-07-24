@@ -4,12 +4,17 @@ import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -59,38 +64,41 @@ public class TaobaoCrawlTask extends CrawlTask {
 		if (this.category == null) {
 			this.category = new Category("所有分类", null);
 		}
-		crawl(url, coding, category, 1);
-		threads.remove(Thread.currentThread());
-		startThread(waitThreads, threads);
+		crawl(url, coding, category, 0);
+		Monitor.stop();
 	}
 
 	void crawl(final String url, final String coding, Category category,
 			int level) {
-		String info = getPageConfig(url, category);
-		if (!StringUtils.isBlank(info)) {
-			analyze(category, info);
-			List<Category> childs = category.getChilds();
-			for (int index = 0; index < childs.size(); index++) {
-				crawl(url, coding, childs.get(index), level++);
+		level ++;
+		if(level < 3){
+			String info = getPageConfig(url, category);
+			if (!StringUtils.isBlank(info)) {
+				category.setLevel(level);
+				System.out.println(category.getName() + "--" + category.getId()
+						+ "--" + category.getLevel());
+				analyze(category, info);
+				List<Category> childs = category.getChilds();
+				for (int index = 0; index < childs.size(); index++) {
+					crawl(url, coding, childs.get(index), level);
+				}
 			}
+		}else{
+			category.setLevel(level);
+			System.out.println(category.getName() + "--" + category.getId()
+					+ "--" + category.getLevel());
+			total ++;
 		}
+		
+
 	}
 
 	private void analyze(Category category, String info) {
 		List<Category> categories = getCategorys(info);
 		int countItems = getTotalCount(info);
 		category.setCountItems(countItems);
-		if (categories.size() == 0) {
-			if (countItems < 4400) {
-				total += countItems;
-				Page page = getPage(info);
-				String url = detailUrl + "&cat=" + category.getId() + "&s=";
-				startDetail(page, url);
-			} else {
-				startDetail(0, getMaxPrise(info), detailUrl, category);
-			}
-		}
 		category.setChilds(categories);
+		
 	}
 
 	private void startDetail(double lowPrise, double hightPrise,
@@ -103,12 +111,12 @@ public class TaobaoCrawlTask extends CrawlTask {
 			if (totalCount <= 4400) {
 				total += totalCount;
 				Page page = getPage(info);
-				startDetail(page, urlc + "&cat=" + category.getId());
+//				startDetail(page, urlc + "&cat=" + category.getId());
 			} else {
 				double temp = hightPrise - lowPrise;
 				if (temp <= 1) {
 					Page page = getPage(info);
-					startDetail(page, urlc + "&cat=" + category.getId());
+//					startDetail(page, urlc + "&cat=" + category.getId());
 				} else {
 					startDetail(lowPrise, lowPrise + temp / 2, urlc, category);
 					startDetail(lowPrise + temp / 2, hightPrise, urlc, category);
@@ -118,12 +126,12 @@ public class TaobaoCrawlTask extends CrawlTask {
 
 	}
 
-	private void startDetail(Page page, String url) {
-		TaobaoDetailCrawlTask t = new TaobaoDetailCrawlTask(url, page);
-		Thread thread = new Thread(t);
-		TaobaoCrawlTask.addThread(thread);
-		startThread(waitThreads, threads);
-	}
+//	private void startDetail(Page page, String url) {
+//		TaobaoDetailCrawlTask t = new TaobaoDetailCrawlTask(url, page);
+//		Thread thread = new Thread(t);
+//		TaobaoCrawlTask.addThread(thread);
+//		startThread(waitThreads, threads);
+//	}
 
 	private List<Category> getCategorys(String info) {
 		List<Category> categories = new ArrayList<Category>();
@@ -141,6 +149,8 @@ public class TaobaoCrawlTask extends CrawlTask {
 				category.setName(categoryJO.getString("text"));
 				categories.add(category);
 			}
+		}else{
+			total++;
 		}
 		return categories;
 	}
@@ -229,6 +239,7 @@ public class TaobaoCrawlTask extends CrawlTask {
 		BufferedReader br = null;
 		try {
 			urlCon.connect();
+			System.out.println(urlCon.getHeaderField("cookie"));
 			in = new InputStreamReader(urlCon.getInputStream(), UTF_8);
 			br = new BufferedReader(in);
 			String readLine = null;
@@ -289,26 +300,82 @@ public class TaobaoCrawlTask extends CrawlTask {
 	public final static String UTF_8 = "UTF-8";
 
 	public static void main(String[] args) {
-		String url = "https://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150719&ie=utf8&sort=price-desc&cps=yes&cat=";
+//		String url = "http://s.taobao.com/list?spm=a217f.7278017.1997728653.2.Rf50JH&style=grid&seller_type=taobao&cps=yes&cat=";
+		String url = "https://list.taobao.com/itemlist/default.htm?_input_charset=utf-8&json=on&sort=biz30daydata-key=s&cat=51712001&s=0&pSize=96&data-value=96&callback=jsonp20&_ksTS=1437731744965_19";
 
-		Category category = new Category("所有分类", null);
-		TaobaoCrawlTask tct = new TaobaoCrawlTask(url);
-		String info = tct.getPageConfig(url, category);
-		tct.analyze(category, info);
-		System.out.println(category.getName() + "--" + category.getId() + "--"
-				+ category.getCountItems());
-		for (Category c : category.getChilds()) {
-			TaobaoCrawlTask tctThread = new TaobaoCrawlTask(url);
-			tctThread.setCategory(c);
-			Thread t = new Thread(tctThread);
-			addThread(t);
-			startThread(waitThreads, threads);
+//		Category category = new Category("所有分类", null);
+//		TaobaoCrawlTask tct = new TaobaoCrawlTask(url);
+//		tct.setCategory(category);
+//		Thread t = new Thread(tct);
+//		t.start();
+//		
+//		Monitor m = new Monitor();
+//		Thread mt = new Thread(m);
+//		mt.start();
+		
+		HttpURLConnection urlCon = URLConnector.getHttpConnection(url, UTF_8);
+		urlCon.setRequestProperty("Cookie", "t="+getUUID()+";v=0;isg="+ getUUID() + ";cookie2="+getUUID());
+		urlCon.setRequestProperty("Host","list.taobao.com");
+		Map<String, List<String>> a = urlCon.getHeaderFields();
+		
+		Iterator<Entry<String, List<String>>> i = a.entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<String, List<String>> e = i.next();
+			System.out.print(e.getKey());
+			for (int j = 0; j < e.getValue().size(); j++) {
+				System.out.print("--" + e.getValue().get(j));
+			}
+			System.out.println();
 		}
-		Monitor m = new Monitor();
-		Thread t = new Thread(m);
-		t.start();
+		
+		
+		InputStreamReader in = null;
+		BufferedReader br = null;
+		try {
+			in = new InputStreamReader(urlCon.getInputStream(), "gbk");
+			br = new BufferedReader(in);
+			String readLine = null;
+			int index = 0;
+			while ((readLine = br.readLine()) != null && index++ < 30) {
+				System.out.println(readLine);
+			}
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+//		String info = tct.getPageConfig(url, category);
+//		tct.analyze(category, info);
+//		System.out.println(category.getName() + "--" + category.getId() + "--"
+//				+ category.getCountItems());
+//		for (Category c : category.getChilds()) {
+//			TaobaoCrawlTask tctThread = new TaobaoCrawlTask(url);
+//			tctThread.setCategory(c);
+//			Thread t = new Thread(tctThread);
+//			addThread(t);
+//			startThread(waitThreads, threads);
+//		}
 	}
-
+	
+	static String getUUID(){
+		return  UUID.randomUUID().toString().replaceAll("-", "");
+	}
+	
 	public static void startThread(List<Thread> waitThreads,
 			List<Thread> threads) {
 		if (threads.size() < 10) {
@@ -330,21 +397,34 @@ public class TaobaoCrawlTask extends CrawlTask {
 }
 
 class Monitor implements Runnable {
+	private static boolean stop = false;
+	
+	public static boolean isStop() {
+		return stop;
+	}
+
+
+	public static void stop() {
+		Monitor.stop = true;
+	}
+
+
 	@Override
 	public void run() {
-		while (TaobaoCrawlTask.threads.size() > 0
-				|| TaobaoCrawlTask.waitThreads.size() > 0) {
-			System.out.println("总数：" + TaobaoCrawlTask.total + "--解析过的："
-					+ TaobaoDetailCrawlTask.totalItem + "--解析成功的："
-					+ TaobaoDetailCrawlTask.alreadyItem + "--errorurl:"
-					+ TaobaoCrawlTask.errorUrl.size() + "--size:"
-					+ TaobaoCrawlTask.waitThreads.size());
+		while ( !stop ) {
 			try {
 				Thread.sleep(3000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			System.out.println("总数：" + TaobaoCrawlTask.total 
+//					+ "--解析过的：" + TaobaoDetailCrawlTask.totalItem 
+//					+  "--解析成功的：" 	+ TaobaoDetailCrawlTask.alreadyItem 
+					+  "--errorurl:" + TaobaoCrawlTask.errorUrl.size()
+//					+  "--size:" + TaobaoCrawlTask.waitThreads.size()
+					);
+			
 		}
 
 	}

@@ -56,6 +56,6 @@ public class URLConnector {
 	public static HttpURLConnection getHttpConnection(String urlStr,
 			String coding) {
 		return getHttpConnection(urlStr, coding, contentType, pageLanguage,
-				false, true, true, connection);
+				false, true, true, "keep-alive");
 	}
 }

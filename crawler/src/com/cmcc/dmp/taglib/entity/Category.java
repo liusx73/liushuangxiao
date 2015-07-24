@@ -5,12 +5,25 @@ import java.util.List;
 public class Category {
 	private String name;
 	private Integer id;
+	private Integer level;
 	private List<Category> childs;
 	//当前类别的总商品/条目数
 	private Integer countItems;
 	public Category() {
 		super();
 	}
+	
+	public Integer getLevel() {
+		return level;
+	}
+
+
+
+	public void setLevel(Integer level) {
+		this.level = level;
+	}
+
+
 
 	public Category(String name, Integer id, List<Category> childs) {
 		super();

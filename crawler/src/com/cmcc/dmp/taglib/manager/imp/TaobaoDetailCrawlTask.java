@@ -88,6 +88,10 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 				return;
 			}
 			
+			Elements e = doc.select("li[class*=section clearfix] > h5 > a");
+			e.get(0).text();
+			e.get(0).attr("htef");
+			
 			boolean isTmall = url.toLowerCase().indexOf("tmall") > -1;
 			String title = null;
 			String prise = null;
