@@ -301,8 +301,11 @@ public class TaobaoCrawlTask extends CrawlTask {
 
 	public static void main(String[] args) {
 //		String url = "http://s.taobao.com/list?spm=a217f.7278017.1997728653.2.Rf50JH&style=grid&seller_type=taobao&cps=yes&cat=";
-		String url = "https://list.taobao.com/itemlist/default.htm?_input_charset=utf-8&json=on&sort=biz30daydata-key=s&cat=51712001&s=0&pSize=96&data-value=96&callback=jsonp20&_ksTS=1437731744965_19";
-
+		
+		String url = "https://login.taobao.com/member/login.jhtml";
+//		String url = "https://list.taobao.com/itemlist/default.htm?_input_charset=utf-8&json=on&sort=biz30daydata-key=s&cat=51712001&s=0&pSize=96&data-value=96&callback=jsonp20&_ksTS=1437731744965_19";
+//		https://sec.taobao.com/query.htm?smApp=list&smPolicy=list-list_itemlist_jsonapi-anti_Spider-checklogin&smCharset=utf-8&smTag=MjIzLjk1Ljc2LjEzNywsMmVmN2E4MzcwYzJkNDM5NDk2MjBmZTg5ZjBlMjU2OTA%3D&smReturn=https%3A%2F%2Flist.taobao.com%2Fitemlist%2Fdefault.htm%3F_input_charset%3Dutf-8%26json%3Don%26sort%3Dbiz30daydata-key%3Ds%26cat%3D51712001%26s%3D0%26pSize%3D96%26data-value%3D96%26callback%3Djsonp20%26_ksTS%3D1437731744965_19&smSign=wt4O9AKpvuhfPk7vdwKjHA%3D%3D
+//		https://list.taobao.com/itemlist/default.htm?_input_charset=utf-8&json=on&sort=biz30daydata-key=s&cat=51712001&s=0&pSize=96&data-value=96&callback=jsonp20&_ksTS=1437731744965_19
 //		Category category = new Category("所有分类", null);
 //		TaobaoCrawlTask tct = new TaobaoCrawlTask(url);
 //		tct.setCategory(category);
@@ -314,7 +317,7 @@ public class TaobaoCrawlTask extends CrawlTask {
 //		mt.start();
 		
 		HttpURLConnection urlCon = URLConnector.getHttpConnection(url, UTF_8);
-		urlCon.setRequestProperty("Cookie", "t="+getUUID()+";v=0;isg="+ getUUID() + ";cookie2="+getUUID());
+//		urlCon.setRequestProperty("Cookie", "t="+getUUID()+";v=0;isg="+ getUUID() + ";cookie2="+getUUID());
 		urlCon.setRequestProperty("Host","list.taobao.com");
 		Map<String, List<String>> a = urlCon.getHeaderFields();
 		
@@ -346,7 +349,7 @@ public class TaobaoCrawlTask extends CrawlTask {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		
+		
 		
 		
 		
