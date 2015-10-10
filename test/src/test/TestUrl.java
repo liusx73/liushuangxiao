@@ -3,10 +3,14 @@ package test;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
+import org.apache.commons.beanutils.converters.URLConverter;
 import org.apache.lucene.document.Document;
 
 import net.sf.json.JSONArray;
@@ -17,7 +21,7 @@ public class TestUrl {
 		URL url = null;
 		HttpURLConnection urlCon = null;
 		StringBuffer sb = new StringBuffer();
-		String urlstr = "http://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150716&ie=utf8&cps=yes&bcoffset=1&cat=50103018&filter=reserve_price%5B400%2C400%5D";
+		String urlstr = "https://item.taobao.com/item.htm?spm=a230r.1.14.8.thg1Sq&id=15514828246&ns=1&abbucket=13#detail";
 		String info = null;
 		
 		try {
@@ -70,6 +74,4 @@ public class TestUrl {
 		}
 	}
 	
-	
-	private  url
 }

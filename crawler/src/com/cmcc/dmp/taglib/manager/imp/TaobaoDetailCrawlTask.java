@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import tools.HtmlStringUtils;
@@ -63,9 +64,10 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 		Iterator<String> i = null;
 		int indexPage = 0;
 		while (indexPage < page.getTotalPage()) {
-			info = getPageConfig(url +"&s=" + indexPage * pageSize, coding);
+			info = getPageConfig(url + indexPage * pageSize, coding);
 			if(!StringUtils.isBlank(info)){
 				items = getItems(info);
+				System.out.println(items);
 				i = items.iterator();
 				while (i.hasNext()) {
 					crawlDetail(i.next());
@@ -88,39 +90,18 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 				return;
 			}
 			
-			Elements e = doc.select("li[class*=section clearfix] > h5 > a");
-			e.get(0).text();
-			e.get(0).attr("htef");
-			
-			boolean isTmall = url.toLowerCase().indexOf("tmall") > -1;
-			String title = null;
-			String prise = null;
-			String attribute = null;
-			String brand = null;
-			if(isTmall){
-				Elements titles = doc.select("div[class=tb-detail-hd]");
-				title = titles.get(0).getElementsByTag("h1").get(0).text();
-				String prises = doc.select("script").toString();
-				prise = getValue(prises, prises.indexOf(DEFAULT_ITEM_PRICE) + DEFAULT_ITEM_PRICE.length());
-				Elements brands = doc.select("a[class=J_EbrandLogo]");
-				if(brands .size() > 0){
-					brand = brands.get(0).text();
+			Elements a = doc.select("script");
+			String s = null;
+			for (Element element : a) {
+				if(element.html().contains("TShop")){
+					s = element.html();
 				}
-				Elements attributes = doc.select("li[class=attrwrap]");
-				if(attributes.size()== 0){
-					attributes = doc.select("ul[id=J_AttrUL]");
-				}
-				attribute = attributes.get(0).text();
-			}else{
-				Elements titles = doc.select("h3[class=tb-main-title]");
-				title = titles.get(0).text();
-				String prises = doc.select("script").toString();
-				prise = getValue(prises, prises.indexOf(DEFAULT_ITEM_PRICE) + DEFAULT_ITEM_PRICE.length());
-				Elements attributes = doc.select("ul[class=attributes-list]");
-				attribute = attributes.get(0).text();
 			}
+			int start  = s.indexOf("TShop.Setup(") + "TShop.Setup(".length();
+			String s1 = s.substring(start, s.indexOf( '\n', start  + 10)).replaceAll("\n", "").replaceAll("\r", "").trim();
 			
-			plusAlreadyItem();
+			
+			System.out.println(s1);
 		} catch (IOException e) {
 			TaobaoCrawlTask.errorUrl.add(url);
 			System.out.println(url + "----error----" + e.getMessage());
@@ -204,8 +185,8 @@ public class TaobaoDetailCrawlTask extends CrawlTask {
 	}
 	
 	public static void main(String[] args) {
-		String url = "https://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150719&ie=utf8&cps=yes&cat=50004603&bcoffset=1&s=";
-		Page page = new Page(44, 47);
+		String url = "https://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150803&ie=utf8&bcoffset=1&cps=yes&cat=33&style=grid&s=";
+		Page page = new Page(44, 100);
 		TaobaoDetailCrawlTask t = new TaobaoDetailCrawlTask(url, "utf-8", page);
 		long start = new Date().getTime();
 		t.crawl();

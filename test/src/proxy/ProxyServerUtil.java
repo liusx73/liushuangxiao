@@ -1,20 +1,15 @@
-package test;
+package proxy;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
@@ -31,7 +26,7 @@ import org.jsoup.select.Elements;
  * @File: ProxyServerUtil.java
  * @Date: 2015�?6�?29�?
  * @Author: wangmeixi
- * @Copyright: 版权�?�?2015 中国移动 杭州研发中心.
+ * @Copyright: 版权�?�? (C) 2015 中国移动 杭州研发中心.
  *
  * @注意：本内容仅限于中国移动内部传阅，禁止外泄以及用于其他的商业目�?
  */
@@ -40,18 +35,28 @@ public class ProxyServerUtil {
 
 	private static final Log logger = LogFactory.getLog(ProxyServerUtil.class);
 
-	private static List<Proxy> proxyList = null;
+	private static List<Proxy> proxyList = ProxyServerUtil.loadProxy();
+	private static int[] deleteProxySign = new int[proxyList.size()];// int 默认�?0 设为1 表示 下标�?�? proxy 不能�?
+	// private static List<Proxy> proxyList = null;
+	private static int index = 0;
 
 	private static List<Proxy> loadProxy() {
-		List<Proxy> list = new LinkedList<Proxy>();
+		List<Proxy> list = new ArrayList<Proxy>();
 		BufferedReader br = null;
+		Proxy proxy = null;
 		try {
-			br = new BufferedReader(new FileReader(new File(System.getProperty("user.dir") + System.getProperty("file.separator") + "proxy")));
+			br = new BufferedReader(new FileReader(new File(getClassPath() + "proxy/proxy.txt")));
 			String line = null;
+			int count = 0;
 			while ((line = br.readLine()) != null) {
-				String[] s = line.split(";");
-				list.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(s[0].trim(), Integer.parseInt(s[1].trim()))));
+				count++;
+				String[] s = line.split(":");
+				proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(s[0].trim(), Integer.parseInt(s[1].trim())));
+				if (proxy != null && !list.contains(proxy)) {
+					list.add(proxy);
+				}
 			}
+			System.out.println(count);
 		} catch (FileNotFoundException e) {
 			logger.error(ProxyServerUtil.class, e);
 		} catch (IOException e) {
@@ -63,8 +68,12 @@ public class ProxyServerUtil {
 				logger.error(ProxyServerUtil.class, e);
 			}
 		}
-		logger.info("proxy list size :" + proxyList.size());
+		logger.info("proxy list size :" + list.size());
 		return list;
+	}
+
+	public static int getProxyListSize() {
+		return proxyList.size();
 	}
 
 	private static List<Proxy> crawlProxy() {
@@ -95,24 +104,63 @@ public class ProxyServerUtil {
 		return list;
 	}
 
+	private static void nextIndex() {
+		index++;
+		if (index >= proxyList.size()) {
+			index = 0;
+		}
+	}
+
 	private static List<Proxy> getProxy(Document document) {
 		List<Proxy> list = new LinkedList<Proxy>();
 		String ipRegex = "((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)";
+		Proxy proxy = null;
 		Elements elements = document.select("tr");
 		for (Element e : elements) {
 			Elements nodes = e.select("td");
 			if (nodes.size() > 3 && Pattern.matches(ipRegex, nodes.get(1).text().trim())) {
-				list.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(nodes.get(1).text().trim(), Integer.parseInt(nodes.get(2).text().trim()))));
+				proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(nodes.get(1).text().trim(), Integer.parseInt(nodes.get(2).text().trim())));
+				if (proxy != null && !list.contains(proxy)) {
+					list.add(proxy);
+				}
 			}
 		}
 		return list;
 	}
 
+	private static int CAN_USE = 0;
+	
 	public static Proxy getProxy() {
-		if (!proxyList.isEmpty()) {
-			Random random = new Random(System.currentTimeMillis());
-			return proxyList.get(Math.abs(random.nextInt()) % proxyList.size());
+		int count = 0;
+		Proxy proxy = null;
+		while (count < 5 && proxy == null) {
+			proxy = proxy();
 		}
+		return proxy;
+	}
+	
+	public synchronized static Proxy proxy() {
+		if (!proxyList.isEmpty()) {
+			int useIndex = -1;
+			int traversed = 0;
+			while (useIndex == -1 && traversed < deleteProxySign.length) {
+				nextIndex();
+				traversed++;
+				if (deleteProxySign[index] == CAN_USE) {
+					useIndex = index;
+				}
+			}
+			if (useIndex != -1) {
+				return proxyList.get(useIndex);
+			}
+
+		}
+
+		if (proxyList.isEmpty()) {
+			proxyList = ProxyServerUtil.loadProxy();
+			deleteProxySign = new int[proxyList.size()];
+		}
+
 		return null;
 	}
 
@@ -151,120 +199,23 @@ public class ProxyServerUtil {
 	}
 
 	public static void removeProxy(Proxy proxy) {
-		proxyList.remove(proxy);
-		if (proxyList.isEmpty()) {
-			proxyList = ProxyServerUtil.crawlProxy();
-		}
+		int index = proxyList.indexOf(proxy);
+		deleteProxySign[index] = 1;
 	}
-	
-	private BufferedWriter bufferedWriter = initBufferedWriter();
-	
-	public void obtainProxy(){
-		List<Proxy> proxyList = ProxyServerUtil.crawlProxy2();
-		boolean isAvailable = false;
-		for (Proxy proxy : proxyList) {
-			isAvailable = isAvailable(proxy, 0);
-			if(isAvailable){
-				writeProxy(proxy);
-			}
-		}
-	}
-	
-	private void writeProxy(Proxy proxy){
-		try {
-			bufferedWriter.write(proxy.toString());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	private BufferedWriter initBufferedWriter(){
-		BufferedWriter bufferedWriter = null;
-		FileWriter fileWriter = null;
-		try {
-			File file = new File(System.getProperty("user.dir") + System.getProperty("file.separator") + "proxy");
-			if(file.exists()){
-				file.delete();
-			}else{
-				file.createNewFile();
-			}
-			fileWriter = new FileWriter(file);
-			bufferedWriter = new BufferedWriter(fileWriter);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return bufferedWriter;
-	}
-	
-	private String urlStr = "http://www.baidu.com";
-	private boolean isAvailable(Proxy proxy, int times){
-		InputStreamReader in = null;
-		BufferedReader br = null;
-		HttpURLConnection urlCon = null;
-		try {
-			URL url;
-			url = new URL(urlStr);
-			proxy = ProxyServerUtil.getProxy();
-			urlCon = (HttpURLConnection) url.openConnection(proxy);
-			
-			urlCon.setReadTimeout(6000);
-			
-			if (HttpURLConnection.HTTP_OK != urlCon.getResponseCode()) {
-				logger.info("链接无效�?" + urlStr);
-				logger.info("http code : " + urlCon.getResponseCode());
-				if (times < 5) {
-					return isAvailable(proxy, times);
-				}else{
-					return false;
-				}
-			}
-			urlCon.connect();
-			in = new InputStreamReader(urlCon.getInputStream(), "utf-8");
-			br = new BufferedReader(in);
-			br.readLine();
-			in.close();
-			in = null;
-			br.close();
-			br = null;
-			urlCon.disconnect();
-			urlCon = null;
-		} catch (Exception e) {
-			logger.warn(urlStr + "-" + e.getMessage());
-			if(times < 5){
-				return isAvailable(proxy, times);
-			}else{
-				return false;
-			}
-		} finally {
-			try {
-				if (in != null) {
-					in.close();
-				}
-				if (br != null) {
-					br.close();
-				}
-				if (urlCon != null) {
-					urlCon.disconnect();
-				}
-			} catch (IOException e) {
-				logger.warn(urlStr + "-" + e.getMessage());
-			}
-		}
-		return true;
-	}
-	
+
 	public static void changeProxy() {
 		Proxy proxy = getProxy();
 		System.setProperty("http.proxyHost", ((InetSocketAddress) proxy.address()).getHostName());
 		System.setProperty("http.proxyPort", "" + ((InetSocketAddress) proxy.address()).getPort());
 	}
-	
-	
+
 	public static void main(String[] args) {
-		System.out.println(System.getProperty("user.dir") + System.getProperty("file.separator") + "proxy");
-//		ProxyServerUtil proxyServerUtil = new ProxyServerUtil();
-//		proxyServerUtil.obtainProxy();
+		Proxy proxy = getProxy();
+		System.out.println(proxy);
+	}
+	
+	public static String getClassPath(){
+		String classPath = ProxyServerUtil.class.getClassLoader().getResource("").getPath();
+		return classPath;
 	}
 }

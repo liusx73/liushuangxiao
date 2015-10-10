@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -68,7 +69,7 @@ public class TaobaoCrawlTask extends CrawlTask {
 		Monitor.stop();
 	}
 
-	void crawl(final String url, final String coding, Category category,
+	private void crawl(final String url, final String coding, Category category,
 			int level) {
 		level ++;
 		if(level < 3){
@@ -300,9 +301,18 @@ public class TaobaoCrawlTask extends CrawlTask {
 	public final static String UTF_8 = "UTF-8";
 
 	public static void main(String[] args) {
-//		String url = "http://s.taobao.com/list?spm=a217f.7278017.1997728653.2.Rf50JH&style=grid&seller_type=taobao&cps=yes&cat=";
+		String url = "http://s.taobao.com/list?spm=a217f.7278017.1997728653.2.Rf50JH&style=grid&seller_type=taobao&cps=yes&cat=";
 		
-		String url = "https://login.taobao.com/member/login.jhtml";
+		url = "https://s.taobao.com/search?q=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20150803&ie=utf8";
+		url = "http://jump.taobao.com/jump?target=https%3A%2F%2Fchaoshi%2Edetail%2Etmall%2Ecom%2Fitem%2Ehtm%3Fspm%3Da3204%2E7084713%2E2996785438%2E7%2EkUnm91%26acm%3D201506250%2E1003%2E1%2E391916%26aldid%3DjwTDKHZi%26scm%3D1003%2E1%2E201506250%2E13%5F45522626166%5F391916%26pos%3D1%26userBucket%3D10%26id%3D45522626166";
+		
+		url = "https://ju.taobao.com/home.htm?bid=5&item_id=521404881764&tracelog=fromsearch&abbucket=0#detail";
+		url = "http://s.club.jd.com/productpage/p-1445973231-s-0-t-3-p-0.html";
+		url = "http://c.3.cn/recommend?methods=accessories,suit&p=102001&sku=1695299809&cat=1315,1342,1350";
+		
+//		url = "https://item.taobao.com/item.htm?spm=a230r.1.14.116.jUwrl6&id=45168132818&ns=1&abbucket=13#detail";
+//		url = "https://game.taobao.com/item.htm?item_num=45168132818&spm=a230r.1.14.116.jUwrl6&ns=1&abbucket=13";
+		
 //		String url = "https://list.taobao.com/itemlist/default.htm?_input_charset=utf-8&json=on&sort=biz30daydata-key=s&cat=51712001&s=0&pSize=96&data-value=96&callback=jsonp20&_ksTS=1437731744965_19";
 //		https://sec.taobao.com/query.htm?smApp=list&smPolicy=list-list_itemlist_jsonapi-anti_Spider-checklogin&smCharset=utf-8&smTag=MjIzLjk1Ljc2LjEzNywsMmVmN2E4MzcwYzJkNDM5NDk2MjBmZTg5ZjBlMjU2OTA%3D&smReturn=https%3A%2F%2Flist.taobao.com%2Fitemlist%2Fdefault.htm%3F_input_charset%3Dutf-8%26json%3Don%26sort%3Dbiz30daydata-key%3Ds%26cat%3D51712001%26s%3D0%26pSize%3D96%26data-value%3D96%26callback%3Djsonp20%26_ksTS%3D1437731744965_19&smSign=wt4O9AKpvuhfPk7vdwKjHA%3D%3D
 //		https://list.taobao.com/itemlist/default.htm?_input_charset=utf-8&json=on&sort=biz30daydata-key=s&cat=51712001&s=0&pSize=96&data-value=96&callback=jsonp20&_ksTS=1437731744965_19
@@ -318,7 +328,14 @@ public class TaobaoCrawlTask extends CrawlTask {
 		
 		HttpURLConnection urlCon = URLConnector.getHttpConnection(url, UTF_8);
 //		urlCon.setRequestProperty("Cookie", "t="+getUUID()+";v=0;isg="+ getUUID() + ";cookie2="+getUUID());
-		urlCon.setRequestProperty("Host","list.taobao.com");
+//		urlCon.setRequestProperty(":host","detail.ju.taobao.com");
+//		urlCon.setRequestProperty(":scheme","https");
+//		urlCon.setRequestProperty(":method","GET");
+//		urlCon.setRequestProperty("Cookie","bid=5");
+//		urlCon.setRequestProperty("path","/home.htm?bid=5&item_id=521404881764&tracelog=fromsearch&abbucket=0");
+//		urlCon.setRequestProperty("Cookie","cna=k6KGDsctghkCAd9fTIlJ7ASk; thw=CN; v=0; cookie2=19209d8b84deed038f2ab9f584b71b77; t=fd3ed0c6ad67b9a2010a785a996a90bc; _tb_token_=7eb33ef373ee1; uc1=cookie14=UoWzW9CPe%2FHczw%3D%3D; mt=ci%3D-1_0; l=AmJi2sgY96-KoQrh3GtoRVF8MubEs2bN; isg=CE87F36B7FA4F307B6571064F9D671EA");
+		urlCon.setRequestProperty("User-Agent",
+				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36");
 		Map<String, List<String>> a = urlCon.getHeaderFields();
 		
 		Iterator<Entry<String, List<String>>> i = a.entrySet().iterator();
@@ -331,6 +348,7 @@ public class TaobaoCrawlTask extends CrawlTask {
 			System.out.println();
 		}
 		
+		System.out.println("------------------------------------------");
 		
 		InputStreamReader in = null;
 		BufferedReader br = null;
@@ -339,9 +357,12 @@ public class TaobaoCrawlTask extends CrawlTask {
 			br = new BufferedReader(in);
 			String readLine = null;
 			int index = 0;
-			while ((readLine = br.readLine()) != null && index++ < 30) {
+			StringBuffer sb = new StringBuffer();
+			while ((readLine = br.readLine()) != null) {
 				System.out.println(readLine);
+				sb.append(readLine);
 			}
+			System.out.println(JSONObject.fromObject(sb.toString()));
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -349,17 +370,6 @@ public class TaobaoCrawlTask extends CrawlTask {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		
 		
 //		String info = tct.getPageConfig(url, category);
