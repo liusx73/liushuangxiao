@@ -1,0 +1,5 @@
+- 👋 Hi, I’m @liushuangxiao
+- 👀 I’m a java programer
+- 🌱 I’m currently learning big data
+- 💞️ I’m looking to collaborate on big data project
+- 📫 my email lxhiwyn@yeah.net,lxhiwyn@gmail.com
